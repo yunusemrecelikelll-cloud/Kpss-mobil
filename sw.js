@@ -1,5 +1,6 @@
 // Service Worker — KPSS Hazırlık PWA
-const CACHE = 'kpss-v1';
+// Cache adını değiştirince iOS eski cache'i temizler
+const CACHE = 'kpss-v3';
 
 const PRECACHE = [
   './',
@@ -28,27 +29,65 @@ const PRECACHE = [
 
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(PRECACHE)).then(() => self.skipWaiting())
+    caches.open(CACHE)
+      .then(c => c.addAll(PRECACHE))
+      .then(() => self.skipWaiting()) // hemen aktif ol, bekletme
   );
 });
 
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
-      .then(() => self.clients.claim())
+      .then(keys => Promise.all(
+        keys.filter(k => k !== CACHE).map(k => caches.delete(k))
+      ))
+      .then(() => self.clients.claim()) // açık sekmeleri hemen devral
   );
 });
 
 self.addEventListener('fetch', e => {
-  // Sadece GET istekleri
   if (e.request.method !== 'GET') return;
 
+  const url = new URL(e.request.url);
+  const isHTML = e.request.destination === 'document' || url.pathname.endsWith('.html') || url.pathname.endsWith('/');
+  const isData = url.pathname.endsWith('.json');
+
+  if (isHTML) {
+    // HTML: önce ağdan dene, olmadığında cache
+    e.respondWith(
+      fetch(e.request)
+        .then(res => {
+          const clone = res.clone();
+          caches.open(CACHE).then(c => c.put(e.request, clone));
+          return res;
+        })
+        .catch(() => caches.match(e.request))
+    );
+    return;
+  }
+
+  if (isData) {
+    // JSON data: stale-while-revalidate — önce cache'i ver, arka planda güncelle
+    e.respondWith(
+      caches.open(CACHE).then(cache =>
+        cache.match(e.request).then(cached => {
+          const fetchPromise = fetch(e.request).then(res => {
+            cache.put(e.request, res.clone());
+            return res;
+          });
+          return cached || fetchPromise;
+        })
+      )
+    );
+    return;
+  }
+
+  // JS/CSS/resimler: cache-first
   e.respondWith(
     caches.match(e.request).then(cached => {
       if (cached) return cached;
       return fetch(e.request).then(res => {
-        if (!res || res.status !== 200 || res.type === 'opaque') return res;
+        if (!res || res.status !== 200) return res;
         const clone = res.clone();
         caches.open(CACHE).then(c => c.put(e.request, clone));
         return res;
