@@ -1,6 +1,6 @@
 // Service Worker — KPSS Hazırlık PWA
 // Cache adını değiştirince iOS eski cache'i temizler
-const CACHE = 'kpss-v3';
+const CACHE = 'kpss-v4';
 
 const PRECACHE = [
   './',
@@ -19,6 +19,7 @@ const PRECACHE = [
   './src/js/particles.js',
   './assets/icon-192.png',
   './assets/icon-512.png',
+  './assets/icon.svg',
   './data/turkce.json',
   './data/matematik.json',
   './data/tarih.json',

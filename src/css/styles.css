@@ -204,7 +204,17 @@ body::before {
   background: linear-gradient(135deg,var(--violet),var(--rose));
   color: white; margin-left: 4px; vertical-align: middle;
 }
-.header-right { display: flex; justify-content: flex-end; }
+.header-right { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.powered-by {
+  font-size: 9px;
+  line-height: 1.2;
+  color: rgba(196, 181, 253, 0.38);
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  letter-spacing: 0.2px;
+  text-align: right;
+}
 
 /* Centered pill nav */
 .header-nav-center {

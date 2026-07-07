@@ -14,7 +14,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="KPSS" />
-<link rel="apple-touch-icon" href="assets/icon-192.png" />
+<link rel="apple-touch-icon" href="assets/icon-512.png" />
+<link rel="icon" type="image/svg+xml" href="assets/icon.svg" />
 
 <link rel="stylesheet" href="src/css/styles.css" />
 </head>
@@ -83,6 +84,7 @@
         <button class="nav-pill nav-pill-icon" id="nav-settings" title="Ayarlar">⚙️</button>
       </nav>
       <div class="header-right">
+        <span class="powered-by">Powered by Yunus Emre ÇELİKEL</span>
         <button id="switch-user-btn" class="user-switch-pill" title="Kullanıcı Değiştir"></button>
       </div>
     </header>
@@ -128,7 +130,9 @@
 
 <script>
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => { reg.update(); })  // force iOS to check for new version
+      .catch(() => {});
   }
 </script>
 </body>

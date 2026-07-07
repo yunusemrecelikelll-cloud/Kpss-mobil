@@ -146,7 +146,7 @@ function _titleFor(gender, name) {
 }
 function _heroGreeting(gender, name) {
   if (gender === 'k') return `Merhaba, <span>Prenses ${esc(name)}</span>! 👸`;
-  if (gender === 'e') return `Selam, <span>${esc(name)}</span>! Hazır mısın, aslanım? 🦁`;
+  if (gender === 'e') return `Selam, <span>${esc(name)}</span>! Hazır mısın? 🚀`;
   return `Merhaba, <span>${esc(name)}</span>! 🌸`;
 }
 function _motivationsFor(gender, streak) {
@@ -161,10 +161,10 @@ function _motivationsFor(gender, streak) {
     `🏆 ${seriBilgi}`,
   ];
   if (gender === 'e') return [
-    '🦁 Aslanım, her doğru cevap seni zafere yaklaştırıyor!',
-    '💪 Kardeşim, şampiyon olmak çalışmayı gerektirir — devam et!',
-    '🔥 Kral, bugün çalıştığın her dakika sınav günü güç verecek.',
-    '⚡ Dostum, sen bunu başarabilirsin — hiç durma!',
+    '💪 Her doğru cevap hedefine bir adım daha yaklaştırıyor!',
+    '🔥 Bugün çalıştığın her dakika, sınav gününde güç olacak.',
+    '✨ Devam et — başarı adım adım inşa edilir.',
+    '🦁 Aslanım, bu sınavı fethedeceksin!',
     `🏆 ${seriBilgi}`,
   ];
   return [
@@ -625,9 +625,9 @@ function renderResult(result) {
     }
     if (gender === 'e') {
       if (skor >= 85) return `Aslanım ${name}, muhteşemsin! 🦁💥 Bu konuyu tamamen kavramışsın!`;
-      if (skor >= 70) return `Aferin kardeşim! 💪 Küçük eksiklerini gider, bu konu senin!`;
-      if (skor >= 50) return `Fena değil dostum! 🔥 Biraz daha çalışırsan kral gibi olacaksın.`;
-      return `Üzülme aslanım, bu konu biraz zorluyordu! 💪 Anlatımı tekrar oku ve yeniden dene, sen yaparsın!`;
+      if (skor >= 70) return `Aferin ${name}! 💪 Harika iş çıkardın, küçük eksiklerini tamamla!`;
+      if (skor >= 50) return `Fena değil ${name}! 🔥 Biraz daha çalışırsan harika olacaksın.`;
+      return `Üzülme ${name}, bu konu biraz zorluyordu! 💪 Anlatımı tekrar oku ve yeniden dene — sen yaparsın!`;
     }
     if (skor >= 85) return `${name}, muhteşem! 🌟 Bu konuyu tamamen kavramışsın!`;
     if (skor >= 70) return `${name}, çok iyi! 💪 Küçük eksiklerini gider, bu konu sende!`;
@@ -1185,7 +1185,7 @@ function createNewUser() {
   const toastMsg = selectedGender === 'k'
     ? `Hoş geldin, Prenses ${name}! 👸`
     : selectedGender === 'e'
-    ? `Hoş geldin, aslanım ${name}! 🦁`
+    ? `Hoş geldin, ${name}! 🚀`
     : `Hoş geldin, ${name}! 🌸`;
   toast(toastMsg, 'success');
 }
