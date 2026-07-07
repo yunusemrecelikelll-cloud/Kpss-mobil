@@ -957,35 +957,50 @@ body::before {
   touch-action: manipulation;
 }
 
-/* iOS safe area (notch, home indicator) */
-body {
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
-}
-
-/* ── Alt navigasyon çubuğu (mobile only) ── */
-.bottom-nav {
-  display: none; /* masaüstünde gizli */
-}
+/* ── Alt navigasyon çubuğu (masaüstünde gizli) ── */
+.bottom-nav { display: none; }
 
 @media (max-width: 700px) {
-  /* Header'daki orta nav'ı gizle, alt çubuğu göster */
+  /* Body padding'i kaldır — header/notch yönetimini kendimiz yapıyoruz */
+  body { padding-top: 0; padding-bottom: 0; }
+
+  /* Header'daki orta nav'ı gizle */
   .header-nav-center { display: none !important; }
 
-  /* Alt çubuk */
+  /* ── Üst bar: sabit, scroll'da yerinde kalır ── */
+  .app-header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 150;
+    /* Kamera çentiği / notch altında başla */
+    padding-top: max(env(safe-area-inset-top), 10px);
+    padding-left: 16px;
+    padding-right: 16px;
+    padding-bottom: 10px;
+  }
+
+  /* #app sabit header'ın arkasında kalmasın */
+  #app { padding-top: calc(56px + max(env(safe-area-inset-top), 10px)); }
+
+  /* ── Bildirim: notch altında göster ── */
+  .top-notif {
+    top: max(env(safe-area-inset-top), 0px);
+  }
+
+  /* ── Alt çubuk: tam ekrana oturacak şekilde ── */
   .bottom-nav {
     display: flex;
     position: fixed;
     bottom: 0; left: 0; right: 0;
-    height: 62px;
+    /* Buton alanı 56px + home indicator boşluğu */
+    padding-bottom: max(env(safe-area-inset-bottom), 0px);
     background: var(--glass-2);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
     border-top: 1px solid var(--border);
-    padding-bottom: env(safe-area-inset-bottom);
     z-index: 200;
     justify-content: space-around;
-    align-items: center;
+    align-items: stretch;
   }
   .bnav-btn {
     flex: 1;
@@ -994,28 +1009,28 @@ body {
     align-items: center;
     justify-content: center;
     gap: 3px;
-    padding: 6px 4px;
+    padding: 10px 4px;
     background: none;
     border: none;
     cursor: pointer;
     color: var(--text-faint);
     font-size: 10px;
     font-weight: 600;
-    transition: color 0.2s;
-    min-height: 50px;
+    min-height: 56px;
+    transition: color 0.15s;
   }
-  .bnav-btn:active { opacity: 0.7; }
+  .bnav-btn:active { opacity: 0.6; }
   .bnav-icon { font-size: 22px; line-height: 1; }
   .bnav-btn.active { color: var(--violet-l); }
   .bnav-btn.active .bnav-icon {
     filter: drop-shadow(0 0 6px var(--violet-l));
   }
 
-  /* Header mobilde sadece logo + kullanıcı */
-  .app-header { padding: 10px 16px; }
-
-  /* Ana içerik padding: alttan alt-nav için boşluk */
-  .view-root { padding: 14px 14px 80px; }
+  /* İçerik: üst header + alt nav için boşluk bırak */
+  .view-root {
+    padding: 16px 14px;
+    padding-bottom: calc(72px + max(env(safe-area-inset-bottom), 0px));
+  }
 
   /* Kart grid */
   .subject-grid,
@@ -1041,10 +1056,4 @@ body {
   .stat-grid { grid-template-columns: 1fr; }
   .badge-grid { grid-template-columns: 1fr 1fr; }
   .q-opt { font-size: 13px; }
-}
-
-/* PWA standalone mod — status bar boşluğu */
-@media (display-mode: standalone) {
-  body { padding-top: max(env(safe-area-inset-top), 12px); }
-  .app-header { padding-top: max(env(safe-area-inset-top), 10px); }
 }
