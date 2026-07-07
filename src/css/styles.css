@@ -963,35 +963,61 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* Header mobilde daha kompakt */
-@media (max-width: 600px) {
-  .app-header {
-    flex-wrap: wrap;
-    gap: 6px;
-    padding: 8px 12px;
-  }
-  .header-nav-center {
-    order: 3;
-    width: 100%;
-    gap: 4px;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 2px;
-  }
-  .nav-pill {
-    font-size: 11.5px;
-    padding: 5px 9px;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-  .nav-pill span { display: none; }
-  .nav-pill::before { display: inline; }
+/* ── Alt navigasyon çubuğu (mobile only) ── */
+.bottom-nav {
+  display: none; /* masaüstünde gizli */
+}
 
-  /* Ana içerik padding */
-  .view-root { padding: 12px; }
+@media (max-width: 700px) {
+  /* Header'daki orta nav'ı gizle, alt çubuğu göster */
+  .header-nav-center { display: none !important; }
 
-  /* Kart grid: tek sütun */
+  /* Alt çubuk */
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 62px;
+    background: var(--glass-2);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-top: 1px solid var(--border);
+    padding-bottom: env(safe-area-inset-bottom);
+    z-index: 200;
+    justify-content: space-around;
+    align-items: center;
+  }
+  .bnav-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 6px 4px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-faint);
+    font-size: 10px;
+    font-weight: 600;
+    transition: color 0.2s;
+    min-height: 50px;
+  }
+  .bnav-btn:active { opacity: 0.7; }
+  .bnav-icon { font-size: 22px; line-height: 1; }
+  .bnav-btn.active { color: var(--violet-l); }
+  .bnav-btn.active .bnav-icon {
+    filter: drop-shadow(0 0 6px var(--violet-l));
+  }
+
+  /* Header mobilde sadece logo + kullanıcı */
+  .app-header { padding: 10px 16px; }
+
+  /* Ana içerik padding: alttan alt-nav için boşluk */
+  .view-root { padding: 14px 14px 80px; }
+
+  /* Kart grid */
   .subject-grid,
   .stat-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
 

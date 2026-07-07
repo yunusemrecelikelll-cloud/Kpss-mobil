@@ -141,8 +141,13 @@ function postResultChecks(result) {
 // ── Cinsiyet bazlı hitap yardımcıları ──
 function _titleFor(gender, name) {
   if (gender === 'k') return `Prenses ${name}`;
-  if (gender === 'e') return `Prens ${name}`;
+  if (gender === 'e') return `${name}`;
   return name;
+}
+function _heroGreeting(gender, name) {
+  if (gender === 'k') return `Merhaba, <span>Prenses ${esc(name)}</span>! 👸`;
+  if (gender === 'e') return `Selam, <span>${esc(name)}</span>! Hazır mısın, aslanım? 🦁`;
+  return `Merhaba, <span>${esc(name)}</span>! 🌸`;
 }
 function _motivationsFor(gender, streak) {
   const seriBilgi = streak.count > 1
@@ -150,16 +155,16 @@ function _motivationsFor(gender, streak) {
     : 'Bugün yeni bir seri başlat!';
   if (gender === 'k') return [
     '👸 Prenses, her doğru cevap seni taçlandırıyor!',
-    '💜 Büyük sınav günü geldiğinde hazır olacaksın, inan kendine!',
-    '🌸 Canım, bugün çalıştığın her dakika sınav günü gülümsetecek.',
-    '✨ Sen bunu başarabilirsin — devam et, prenses!',
+    '💜 Canım, büyük sınav günü geldiğinde hazır olacaksın!',
+    '🌸 Güzelim, bugün çalıştığın her dakika sınav günü gülümsetecek.',
+    '✨ Kraliçem, sen bunu başarabilirsin — devam et!',
     `🏆 ${seriBilgi}`,
   ];
   if (gender === 'e') return [
-    '🤴 Prens, her doğru cevap seni zafere yaklaştırıyor!',
-    '⚔️ Şampiyon olmak çalışmayı gerektirir — bunu sen bilirsin!',
-    '🔥 Bugün çalıştığın her dakika sınav günü güç verecek.',
-    '💪 Sen bunu başarabilirsin — devam et, prens!',
+    '🦁 Aslanım, her doğru cevap seni zafere yaklaştırıyor!',
+    '💪 Kardeşim, şampiyon olmak çalışmayı gerektirir — devam et!',
+    '🔥 Kral, bugün çalıştığın her dakika sınav günü güç verecek.',
+    '⚡ Dostum, sen bunu başarabilirsin — hiç durma!',
     `🏆 ${seriBilgi}`,
   ];
   return [
@@ -226,7 +231,7 @@ function renderHome() {
       </div>` : ''}
 
     <div class="card hero-card anim-fade">
-      <div class="hero-greeting">Merhaba, <span>${esc(_titleFor(gender, name))}</span>! ${gender === 'k' ? '👸' : gender === 'e' ? '🤴' : '🌸'}</div>
+      <div class="hero-greeting">${_heroGreeting(gender, name)}</div>
       <p class="hero-sub">2026 Ortaöğretim KPSS hazırlığında bugün ne çalışmak istersin?</p>
       <div class="hero-motivation">${motivMsg}</div>
       ${suggestHtml}
@@ -477,15 +482,17 @@ function beginQuiz(sid, sad, tid, tbaslik, questions, isFullTest) {
   if (draft && draft.topicId === tid && draft.answers) {
     if (confirm(`"${tbaslik}" için yarım kalan testine devam etmek ister misin?`)) {
       Quiz.restoreFromDraft(draft);
-      navigate('quiz');
-      Timer.start(draft.durationSec, updateTimer, () => finishQuiz());
+      navigate('quiz'); // renderQuizView timer'ı başlatır
+      const _sd = Storage.getSettings();
+      if (_sd.timerMode !== 'perq') Timer.start(draft.durationSec, updateTimer, () => finishQuiz());
       return;
     }
     Storage.clearDraft();
   }
   Quiz.start(sid, sad, tid, tbaslik, questions, isFullTest);
-  navigate('quiz');
-  Timer.start(Quiz.getState().durationSec, updateTimer, () => finishQuiz());
+  navigate('quiz'); // renderQuizView timer'ı başlatır
+  const _s = Storage.getSettings();
+  if (_s.timerMode !== 'perq') Timer.start(Quiz.getState().durationSec, updateTimer, () => finishQuiz());
 }
 
 function resumeDraft() {
@@ -493,7 +500,8 @@ function resumeDraft() {
   if (!draft) return;
   Quiz.restoreFromDraft(draft);
   navigate('quiz');
-  Timer.start(draft.durationSec, updateTimer, () => finishQuiz());
+  const _sd = Storage.getSettings();
+  if (_sd.timerMode !== 'perq') Timer.start(draft.durationSec, updateTimer, () => finishQuiz());
 }
 
 // ── Quiz ──
@@ -558,14 +566,31 @@ function renderQuizView() {
     if (unanswered > 0 && !confirm(`${unanswered} soru boş. Yine de bitirmek istiyor musun?`)) return;
     finishQuiz();
   });
+
+  // Soru başına geri sayım modu
+  const _qs = Storage.getSettings();
+  if (_qs.timerMode === 'perq') {
+    Timer.stop();
+    Sounds.resetTickPhase();
+    const secsPerQ = Number(_qs.secsPerQ) || 65;
+    Timer.start(secsPerQ, updateTimer, () => {
+      const _st = Quiz.getState();
+      if (!_st) return;
+      if (_st.currentIndex < _st.questions.length - 1) {
+        Quiz.next();
+        renderQuizView();
+      } else {
+        finishQuiz();
+      }
+    });
+  }
 }
 
 // ── Finish quiz ──
 async function finishQuiz() {
   const st = Quiz.getState();
   if (!st) return;
-  const total = st.durationSec;
-  const elapsed = Timer.elapsed(total);
+  const elapsed = Math.round((Date.now() - st.startedAt) / 1000);
   Timer.stop();
   const result = Quiz.finish(elapsed);
   Storage.addAttempt({ ...result });
@@ -593,16 +618,16 @@ function renderResult(result) {
 
   function msg(skor) {
     if (gender === 'k') {
-      if (skor >= 85) return `${title}, muhteşemsin! 👸✨ Bu konuyu tamamen kavramışsın!`;
-      if (skor >= 70) return `${title}, çok iyisin! 💜 Küçük eksiklerini gider, bu konu senin!`;
-      if (skor >= 50) return `${title}, fena değil! 🌸 Biraz daha çalışırsan harika olacaksın.`;
-      return `${title}, bu konu biraz zorluyordu ama sorun değil! 🤗 Anlatımı tekrar oku ve yeniden dene, sende olur!`;
+      if (skor >= 85) return `Prenses ${name}, muhteşemsin! 👸✨ Bu konuyu tamamen kavramışsın, canım!`;
+      if (skor >= 70) return `Aferin güzelim! 💜 Küçük eksiklerini gider, bu konu senin prenses!`;
+      if (skor >= 50) return `Fena değil, kraliçem! 🌸 Biraz daha çalışırsan harika olacaksın.`;
+      return `Üzülme canım, bu konu biraz zorluyordu! 🤗 Anlatımı tekrar oku, sen yaparsın prenses!`;
     }
     if (gender === 'e') {
-      if (skor >= 85) return `${title}, muhteşemsin! 🤴⚔️ Bu konuyu tamamen kavramışsın!`;
-      if (skor >= 70) return `${title}, çok iyisin! 💪 Küçük eksiklerini gider, bu konu senin!`;
-      if (skor >= 50) return `${title}, fena değil! 🔥 Biraz daha çalışırsan harika olacaksın.`;
-      return `${title}, bu konu biraz zorluyordu ama sorun değil! 💪 Anlatımı tekrar oku ve yeniden dene, sen yaparsın!`;
+      if (skor >= 85) return `Aslanım ${name}, muhteşemsin! 🦁💥 Bu konuyu tamamen kavramışsın!`;
+      if (skor >= 70) return `Aferin kardeşim! 💪 Küçük eksiklerini gider, bu konu senin!`;
+      if (skor >= 50) return `Fena değil dostum! 🔥 Biraz daha çalışırsan kral gibi olacaksın.`;
+      return `Üzülme aslanım, bu konu biraz zorluyordu! 💪 Anlatımı tekrar oku ve yeniden dene, sen yaparsın!`;
     }
     if (skor >= 85) return `${name}, muhteşem! 🌟 Bu konuyu tamamen kavramışsın!`;
     if (skor >= 70) return `${name}, çok iyi! 💪 Küçük eksiklerini gider, bu konu sende!`;
@@ -900,23 +925,7 @@ function renderSettings() {
       </div>
     </div>
 
-    <!-- Mouse efekti -->
-    <div class="section-title" style="margin-top:20px">🖱️ Mouse Toz Efekti</div>
-    <div class="card" style="padding:20px 22px;margin-bottom:14px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-        <div>
-          <div class="settings-title">Mouse efekti</div>
-          <div class="settings-sub">Fare hareket ettikçe toz parçacıkları çıkar</div>
-        </div>
-        <label class="toggle-switch">
-          <input type="checkbox" id="s-particle-on" ${particleOn ? 'checked' : ''}>
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-      <div id="color-row" style="${particleOn ? '' : 'opacity:0.4;pointer-events:none'}">
-        <div class="settings-sub" style="margin-bottom:10px">Renk teması:</div>
-        <div style="display:flex;flex-wrap:wrap;gap:8px">${colorBtns}</div>
-      </div>
+    <!-- Mouse efekti (masaüstünde gösterilir, mobilde kaldırıldı) -->
     </div>
   `);
 
@@ -958,24 +967,6 @@ function renderSettings() {
       const ex = document.querySelector('#secs-row div:last-child');
       if (ex) ex.textContent = `Örnek: 10 soru × ${n}sn = ${Math.round(10 * n / 60)} dakika`;
       toast(`Soru başına ${n} saniye seçildi.`, 'success');
-    });
-  });
-
-  // Particle toggle
-  $('s-particle-on').addEventListener('change', () => {
-    const on = $('s-particle-on').checked;
-    $('color-row').style.opacity = on ? '1' : '0.4';
-    $('color-row').style.pointerEvents = on ? '' : 'none';
-    Storage.saveSettings({ ...Storage.getSettings(), particleEnabled: on });
-  });
-
-  // Color pick
-  document.querySelectorAll('.color-pick').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.color-pick').forEach(b => b.className = 'btn btn-secondary color-pick');
-      btn.className = 'btn btn-primary color-pick';
-      Storage.saveSettings({ ...Storage.getSettings(), particleColor: btn.dataset.color });
-      toast('Mouse rengi değiştirildi!', 'success');
     });
   });
 
@@ -1139,6 +1130,24 @@ document.addEventListener('DOMContentLoaded', async () => {
   $('nav-missions').addEventListener('click', () => { navigate('missions'); setActiveNav('nav-missions'); });
   $('nav-settings').addEventListener('click', () => { navigate('settings'); setActiveNav('nav-settings'); });
 
+  // Alt navigasyon (mobil)
+  const _bnavMap = [
+    { id: 'bnav-home',     nav: 'home',     pill: 'nav-home' },
+    { id: 'bnav-badges',   nav: 'badges',   pill: 'nav-badges' },
+    { id: 'bnav-wrong',    nav: 'wrong',    pill: 'nav-wrong' },
+    { id: 'bnav-missions', nav: 'missions', pill: 'nav-missions' },
+    { id: 'bnav-settings', nav: 'settings', pill: 'nav-settings' },
+  ];
+  _bnavMap.forEach(({ id, nav, pill }) => {
+    $(id)?.addEventListener('click', () => {
+      navigate(nav);
+      setActiveNav(pill);
+      // Alt nav active sınıfı güncelle
+      document.querySelectorAll('.bnav-btn').forEach(b => b.classList.remove('active'));
+      $(id)?.classList.add('active');
+    });
+  });
+
   // Veri yükle
   spawnParticles();
   await loadAllSubjects();
@@ -1173,9 +1182,12 @@ function createNewUser() {
   selectUser(name);
   Storage.setUserGender(selectedGender);
   Storage.resetDailyMissions();
-  const titleWord = selectedGender === 'k' ? 'Prenses' : selectedGender === 'e' ? 'Prens' : '';
-  const emoji = selectedGender === 'k' ? '👸' : selectedGender === 'e' ? '🤴' : '🌸';
-  toast(`Hoş geldin, ${titleWord ? titleWord + ' ' : ''}${name}! ${emoji}`, 'success');
+  const toastMsg = selectedGender === 'k'
+    ? `Hoş geldin, Prenses ${name}! 👸`
+    : selectedGender === 'e'
+    ? `Hoş geldin, aslanım ${name}! 🦁`
+    : `Hoş geldin, ${name}! 🌸`;
+  toast(toastMsg, 'success');
 }
 
 function setActiveNav(id) {

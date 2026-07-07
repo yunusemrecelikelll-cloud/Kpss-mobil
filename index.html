@@ -38,8 +38,8 @@
           placeholder="Adını gir..." autocomplete="off" />
         <p class="new-user-label" style="margin-top:18px;margin-bottom:10px">Sen kimsin?</p>
         <div class="gender-pick-row">
-          <button type="button" class="gender-btn" data-g="k" id="gender-k">👸 Prenses</button>
-          <button type="button" class="gender-btn" data-g="e" id="gender-e">🤴 Prens</button>
+          <button type="button" class="gender-btn" data-g="k" id="gender-k">👩 Kadın</button>
+          <button type="button" class="gender-btn" data-g="e" id="gender-e">👨 Erkek</button>
         </div>
         <div style="display:flex;gap:10px;margin-top:18px;justify-content:center">
           <button id="new-user-cancel" class="btn btn-ghost">İptal</button>
@@ -87,6 +87,30 @@
       </div>
     </header>
     <main id="view-root" class="view-root"></main>
+
+    <!-- Alt navigasyon (mobilde görünür) -->
+    <nav class="bottom-nav" id="bottom-nav">
+      <button class="bnav-btn active" id="bnav-home">
+        <span class="bnav-icon">🏠</span>
+        <span>Anasayfa</span>
+      </button>
+      <button class="bnav-btn" id="bnav-badges">
+        <span class="bnav-icon">🎖</span>
+        <span>Rozetler</span>
+      </button>
+      <button class="bnav-btn" id="bnav-wrong">
+        <span class="bnav-icon">❌</span>
+        <span>Yanlışlarım</span>
+      </button>
+      <button class="bnav-btn" id="bnav-missions">
+        <span class="bnav-icon">📋</span>
+        <span>Görevler</span>
+      </button>
+      <button class="bnav-btn" id="bnav-settings">
+        <span class="bnav-icon">⚙️</span>
+        <span>Ayarlar</span>
+      </button>
+    </nav>
   </div>
 
 </div>
